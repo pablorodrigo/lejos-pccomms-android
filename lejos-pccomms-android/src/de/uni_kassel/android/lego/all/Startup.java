@@ -1,63 +1,43 @@
 package de.uni_kassel.android.lego.all;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
-import lejos.nxt.SensorPort;
-import lejos.nxt.Sound;
-import lejos.nxt.addon.MSC;
 import lejos.pc.comm.NXTCommBluecove;
 import lejos.pc.comm.NXTCommException;
 import lejos.pc.comm.NXTCommFactory;
 import lejos.pc.comm.NXTInfo;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 public class Startup extends Activity {
 	private NXTCommBluecove connection = null;
 	private Intent choiceDeviceIntent;
 	private int REQUEST_CHOICE_DEVICE = 200;
 	private int REQUEST_SETTINGS = 300;
-	private BluetoothAdapter mBluetoothAdapter=null;
-	// Intent request codes
-    private static final int REQUEST_CONNECT_DEVICE = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
-    private static final int REQUEST_ENABLE_SCAN = 3;
-
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
+
+		Context context = this.getApplicationContext();
+		
 	}
 
 	public void connection() {
 		NXTCommBluecove connection = getConnection();
 		if (connection != null) {
 			if (connection.isOpened()) {
-				//TODO
+				/*
+				 * TODO do something
+				 */
 			} else {
 				if (connection.initConnection()) {
 					try {
@@ -104,6 +84,13 @@ public class Startup extends Activity {
 				lConnect = false;
 			}
 		}
+		if (lConnect) {
+			if (connection.isOpened()) {
+				/*
+				 * TODO do something
+				 */
+			}
+		}
 	}
 
 	public void showDevices(Vector<BluetoothDevice> devices) {
@@ -141,59 +128,6 @@ public class Startup extends Activity {
 		}
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		createMenu(menu);
-
-		// menu.add(Menu.NONE, 0, 2, "Settings");
-		return true;
-	}
-
-	@Override
-	public void onOptionsMenuClosed(Menu menu) {
-		super.onOptionsMenuClosed(menu);
-		menu.clear();
-		createMenu(menu);
-	}
-
-	private void createMenu(Menu menu) {
-		menu.add(Menu.NONE, 0, 0, "Beenden");
-		menu.add(Menu.NONE, 0, 2, "Connect");
-	}
-
-	@Override
-	/*
-	public boolean onOptionsItemSelected(MenuItem item) {
-		boolean result = super.onOptionsItemSelected(item);
-		if (item.getTitle() == "Beenden") {
-			NXTCommBluecove connection = getConnection();
-			if (connection != null && connection.isOpened()) {
-				connection.stopMotor();
-			}
-			closeConnection();
-			this.finish();
-		} else if (item.getTitle() == "Connect") {
-			NXTCommBluecove connection = getConnection();
-			if (connection.initConnection()) {
-				try {
-					connection.search("", NXTCommFactory.BLUETOOTH);
-				} catch (NXTCommException e) {
-					e.printStackTrace();
-				}
-			}
-		} else if (item.getTitle() == "Disconnect") {
-			closeConnection();
-		} else if (item.getTitle() == "Stop") {
-			NXTCommBluecove connection = getConnection();
-			connection.stopMotor();
-		} else if (item.getTitle() == "Settings") {
-			this.startActivityForResult(choiceDeviceIntent, REQUEST_SETTINGS);
-		}
-		return result;
-	}
-	*/
-
 	public void closeConnection() {
 		NXTCommBluecove connection = getConnection();
 		try {
@@ -205,9 +139,6 @@ public class Startup extends Activity {
 
 	public NXTCommBluecove getConnection() {
 		if (connection == null) {
-			/*
-			 * TODO
-			 */
 			this.connection = new NXTCommBluecove(this);
 		}
 		return connection;
@@ -244,32 +175,4 @@ public class Startup extends Activity {
 		}
 
 	}
-
-	public boolean initConnection(){
-		boolean result=true;
-		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (mBluetoothAdapter == null) {
-		    // Device does not support Bluetooth
-			return false;
-		}
-		if (!mBluetoothAdapter.isEnabled()) {
-			result=false;
-			//mBluetoothAdapter.enable();
-		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-		}
-		return result;
-	}
-
-	public void showDevices(){
-//		ArrayList<String> keys=new ArrayList<String>();
-//		ArrayList<String> values=new ArrayList<String>();
-//		for(BluetoothDevice device : devices){
-//			keys.add(device.getName());
-//			values.add(device.getAddress());
-//		}
-//		this.owner.showDevices(keys.toArray(new String[keys.size()]), values.toArray(new String[values.size()]));			
-		showDevices(devices);
-	}
-	
 }

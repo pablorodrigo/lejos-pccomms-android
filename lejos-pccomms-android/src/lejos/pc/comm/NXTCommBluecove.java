@@ -3,12 +3,13 @@ package lejos.pc.comm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.Vector;
+
+import de.uni_kassel.android.lego.all.Startup;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -36,7 +37,13 @@ public class NXTCommBluecove implements NXTComm {
 	private BluetoothDevice connecteddevice=null;
 	private BluetoothSocket mmSocket;
 
+	// Intent request codes
+    private static final int REQUEST_CONNECT_DEVICE = 1;
+    private static final int REQUEST_ENABLE_BT = 2;
+    private static final int REQUEST_ENABLE_SCAN = 3;
     private static final int SCANTIME=10;
+	private Startup owner;
+	private BluetoothAdapter mBluetoothAdapter=null;
 	private BroadcastReceiver mReceiverFound=null;
 	private BroadcastReceiver mReceiverScanMode=null;
 	private Vector<BluetoothDevice> devices;
@@ -45,6 +52,9 @@ public class NXTCommBluecove implements NXTComm {
 	public static NXTCommBluecove instance;
 	private Timer resetScan=null;
 	
+	public NXTCommBluecove(Startup owner){
+		this.owner=owner;
+	}
 
 	public NXTInfo[] search(String name, int protocol) throws NXTCommException {
 		devices = new Vector<BluetoothDevice>();
@@ -111,6 +121,33 @@ public class NXTCommBluecove implements NXTComm {
 
 	public BluetoothSocket getMmSocket() {
 		return mmSocket;
+	}
+	
+	public boolean initConnection(){
+		boolean result=true;
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBluetoothAdapter == null) {
+		    // Device does not support Bluetooth
+			return false;
+		}
+		if (!mBluetoothAdapter.isEnabled()) {
+			result=false;
+			//mBluetoothAdapter.enable();
+		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+		    this.owner.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		}
+		return result;
+	}
+
+	public void showDevices(){
+//		ArrayList<String> keys=new ArrayList<String>();
+//		ArrayList<String> values=new ArrayList<String>();
+//		for(BluetoothDevice device : devices){
+//			keys.add(device.getName());
+//			values.add(device.getAddress());
+//		}
+//		this.owner.showDevices(keys.toArray(new String[keys.size()]), values.toArray(new String[values.size()]));			
+		this.owner.showDevices(devices);
 	}
 	
 	public void scanBlueTooth(){

@@ -3,7 +3,6 @@ package lejos.nxt.remote;
 import java.io.IOException;
 
 import lejos.robotics.TachoMotor;
-import de.uni_kassel.android.lego.motoren.MotorInterface;
 
 /*
  * WARNING: THIS CLASS IS SHARED BETWEEN THE classes AND pccomms PROJECTS.
@@ -16,7 +15,7 @@ import de.uni_kassel.android.lego.motoren.MotorInterface;
  * @author <a href="mailto:bbagnall@mts.net">Brian Bagnall</a>
  * 
  */
-public class RemoteMotor implements TachoMotor, NXTProtocol, MotorInterface {
+public class RemoteMotor implements TachoMotor, NXTProtocol {
 
 	private int id;
 	private byte power;
@@ -326,14 +325,5 @@ public class RemoteMotor implements TachoMotor, NXTProtocol, MotorInterface {
 
 	public void setAngle(int angle) {
 		rotate(angle);
-	}
-
-	@Override
-	public int addAngle(int value) {
-		// for(int i=0;i<value;i++){
-		// getA
-		// rotate(angle);
-		// }
-		return 0;
 	}
 }
