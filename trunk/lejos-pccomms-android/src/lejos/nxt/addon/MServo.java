@@ -2,7 +2,6 @@ package lejos.nxt.addon;
 
 import lejos.nxt.I2CSensor;
 import lejos.nxt.SensorPort;
-import de.uni_kassel.android.lego.motoren.MotorInterface;
 
 /*
  * WARNING: THIS CLASS IS SHARED BETWEEN THE classes AND pccomms PROJECTS.
@@ -16,7 +15,7 @@ import de.uni_kassel.android.lego.motoren.MotorInterface;
  * @author Juan Antonio Brenha Moral
  * 
  */
-public class MServo extends I2CSensor implements MotorInterface {
+public class MServo extends I2CSensor{
 	// private SensorPort portConnected;//Where is plugged in NXT Brick
 	private int servoPosition = 0; // Position where Servo has been plugged
 	private final byte SERVO1_POSITION = 0x5A; // The place where RC Servo has
@@ -216,11 +215,5 @@ public class MServo extends I2CSensor implements MotorInterface {
 			// }
 		}
 		return angle;
-	}
-
-	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-
 	}
 }

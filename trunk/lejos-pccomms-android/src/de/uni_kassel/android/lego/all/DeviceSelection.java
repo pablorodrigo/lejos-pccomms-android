@@ -53,7 +53,7 @@ public class DeviceSelection extends Activity {
     	Spinner deviceSpinner = (Spinner) findViewById(R.id.Devices);
     	this.itemKey = deviceSpinner.getSelectedItem().toString();
     	this.mac = devices.get(getSelectedDeviceName());
-    	Intent mainIntent = new Intent().setClass(this, main.class);
+    	Intent mainIntent = new Intent().setClass(this, Startup.class);
 		mainIntent.putExtra(DeviceSelection.DEVICEKEY, getSelectedDeviceName());
 		mainIntent.putExtra(DeviceSelection.DEVICEMAC, getSelectedDeviceMac());
     	this.setResult(SUCCESS, mainIntent);
