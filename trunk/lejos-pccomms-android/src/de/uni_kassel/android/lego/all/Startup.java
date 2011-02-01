@@ -2,6 +2,8 @@ package de.uni_kassel.android.lego.all;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import lejos.pc.comm.NXTCommBluecove;
@@ -10,34 +12,45 @@ import lejos.pc.comm.NXTCommFactory;
 import lejos.pc.comm.NXTInfo;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 public class Startup extends Activity {
-	private NXTCommBluecove connection = null;
+	private NXTCommBluecove nxtCommBluecove = null;
 	private Intent choiceDeviceIntent;
-	private int REQUEST_CHOICE_DEVICE = 200;
-	private int REQUEST_SETTINGS = 300;
+	private boolean connected = false;
+	
+	// Intent request codes
+	private static final int REQUEST_CHOICE_DEVICE = 200;
+	private static final int REQUEST_SETTINGS = 300;
+    private static final int REQUEST_CONNECT_DEVICE = 1;
+    private static final int REQUEST_ENABLE_BT = 2;
+    private static final int REQUEST_ENABLE_SCAN = 3;
+    private static final int SCANTIME=10;
 
+	private BroadcastReceiver mReceiverFound=null;
+	private BroadcastReceiver mReceiverScanMode=null;
+	private BluetoothAdapter mBluetoothAdapter=null;
+	private Vector<BluetoothDevice> devices;
+	private Timer resetScan = null;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
-
 		Context context = this.getApplicationContext();
-		
 	}
 
-	public void connection() {
+	/*public void connection() {
 		NXTCommBluecove connection = getConnection();
 		if (connection != null) {
 			if (connection.isOpened()) {
-				/*
-				 * TODO do something
-				 */
+				//connection not open ie mmSocket==null
 			} else {
 				if (connection.initConnection()) {
 					try {
@@ -49,10 +62,131 @@ public class Startup extends Activity {
 			}
 		}
 	}
+	*/
+	
+	public boolean initConnection(){
+		boolean result=true;
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBluetoothAdapter == null) {
+		    // Device does not support Bluetooth
+			return false;
+		}
+		if (!mBluetoothAdapter.isEnabled()) {
+			result=false;
+			//mBluetoothAdapter.enable();
+		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+		    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		}
+		return result;
+	}
+	
+	public void connection() {
+		//TODO finish method body
+		if(connected){
+			initConnection();
+		}
+	}
+	
+	public void scanBlueTooth(){
+		// Create a BroadcastReceiver for ACTION_FOUND
+		if(mReceiverFound==null){
+			mReceiverFound = new BroadcastReceiver() {
+				@Override
+			    public void onReceive(Context context, Intent intent) {
+			        String action = intent.getAction();
+			        // When discovery finds a device
+			        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+			            // Get the BluetoothDevice object from the Intent
+			            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+			            // Add the name and address to an array adapter to show in a ListView
+			            devices.add(device);
+			            //System.out.println("DEVICE: "+device.getName() + "\n" + device.getAddress());
+			        }
+			    }
+			};
+			// Register the BroadcastReceiver
+			registerReceiver(mReceiverFound, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+
+			mReceiverScanMode = new BroadcastReceiver() {
+				@Override
+			    public void onReceive(Context context, Intent intent) {
+			        String action = intent.getAction();
+			        // When discovery finds a device
+			        if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(action)) {
+			        	if(resetScan!=null){
+			        		resetScan.cancel();
+			        		resetScan=null;
+			        	}
+			        	Integer mode=(Integer) intent.getExtras().get(BluetoothAdapter.EXTRA_SCAN_MODE);
+			        	//System.out.println(mode);
+			        	if(mode==BluetoothAdapter.SCAN_MODE_CONNECTABLE){
+			        		showDevices();
+			        	}
+			        }
+			    }
+			};
+			registerReceiver(mReceiverScanMode, new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
+		}
+		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, SCANTIME);
+		startActivityForResult(discoverableIntent, REQUEST_ENABLE_SCAN);
+		resetScan = new Timer();
+		resetScan.schedule(new TimerTask() {
+			public void run() {
+				if(devices.size()<1){
+					showError("Fehler beim suchen");
+				}else{
+					showDevices();
+				}
+			}
+		}, SCANTIME*2*1000);
+		//this.owner.startActivity(discoverableIntent);
+	}
+	
+	public void unregisterReceivers(){
+		if(mReceiverFound!=null){
+			unregisterReceiver(mReceiverFound);
+		}
+		if(mReceiverScanMode!=null){
+			unregisterReceiver(mReceiverScanMode);
+		}
+	}
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == REQUEST_CHOICE_DEVICE) {
+
+		switch (requestCode) {
+		case REQUEST_CONNECT_DEVICE:
+			// When DeviceListActivity returns with a device to connect
+			if (resultCode == Activity.RESULT_OK) {
+				// Get the device MAC address
+				// String address =
+				// data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+				// Get the BLuetoothDevice object
+				// BluetoothDevice device =
+				// mBluetoothAdapter.getRemoteDevice(address);
+				// Attempt to connect to the device
+				// mChatService.connect(device);
+			}
+			break;
+		case REQUEST_ENABLE_BT:
+			// When the request to enable Bluetooth returns
+			if (resultCode == Activity.RESULT_OK && mBluetoothAdapter != null) {
+				// Bluetooth is now enabled, so set up a chat session
+				try {
+					nxtCommBluecove = getConnection();
+					nxtCommBluecove.search("", NXTCommFactory.BLUETOOTH);
+				} catch (NXTCommException e) {
+				}
+			}
+			break;
+		case REQUEST_ENABLE_SCAN:
+			if (resultCode == SCANTIME) {
+				mBluetoothAdapter.startDiscovery();
+			}
+			break;
+
+		case REQUEST_CHOICE_DEVICE:
 			Bundle extras;
 			if (data != null) {
 				extras = data.getExtras();
@@ -66,8 +200,6 @@ public class Startup extends Activity {
 						.get(DeviceSelection.DEVICEMAC);
 				openConnection(deviceKey, deviceMac);
 			}
-		} else if (connection != null) {
-			connection.onActivityResult(requestCode, resultCode, data);
 		}
 	}
 
@@ -85,7 +217,7 @@ public class Startup extends Activity {
 			}
 		}
 		if (lConnect) {
-			if (connection.isOpened()) {
+			if (nxtCommBluecove.isOpened()) {
 				/*
 				 * TODO do something
 				 */
@@ -93,7 +225,7 @@ public class Startup extends Activity {
 		}
 	}
 
-	public void showDevices(Vector<BluetoothDevice> devices) {
+	public void showDevices() {
 
 		for (BluetoothDevice device : devices) {
 			if (device != null) {
@@ -129,28 +261,27 @@ public class Startup extends Activity {
 	}
 
 	public void closeConnection() {
-		NXTCommBluecove connection = getConnection();
-		try {
-			connection.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (nxtCommBluecove == null) {
+			try {
+				nxtCommBluecove.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public NXTCommBluecove getConnection() {
-		if (connection == null) {
-			this.connection = new NXTCommBluecove(this);
+		if (nxtCommBluecove == null) {
+			this.nxtCommBluecove = new NXTCommBluecove(mBluetoothAdapter);
 		}
-		return connection;
+		return nxtCommBluecove;
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		// destroy objects
-		if (connection != null) {
-			connection.removeYou();
-		}
+		unregisterReceivers();
 	}
 
 	public void showError(String text) {

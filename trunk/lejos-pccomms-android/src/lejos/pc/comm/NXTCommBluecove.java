@@ -42,34 +42,25 @@ public class NXTCommBluecove implements NXTComm {
     private static final int REQUEST_ENABLE_BT = 2;
     private static final int REQUEST_ENABLE_SCAN = 3;
     private static final int SCANTIME=10;
-	private Startup owner;
-	private BluetoothAdapter mBluetoothAdapter=null;
-	private BroadcastReceiver mReceiverFound=null;
-	private BroadcastReceiver mReceiverScanMode=null;
-	private Vector<BluetoothDevice> devices;
+//	private Startup owner;
+//	private BroadcastReceiver mReceiverFound=null;
+//	private BroadcastReceiver mReceiverScanMode=null;
+//	private Vector<BluetoothDevice> devices;
 	private boolean isopened=false;
 	
 	public static NXTCommBluecove instance;
-	private Timer resetScan=null;
+//	private Timer resetScan=null;
+	private BluetoothAdapter mBluetoothAdapter;
 	
-	public NXTCommBluecove(Startup owner){
-		this.owner=owner;
+	public NXTCommBluecove(BluetoothAdapter mBluetoothAdapter){
+		this.mBluetoothAdapter = mBluetoothAdapter;
 	}
 
 	public NXTInfo[] search(String name, int protocol) throws NXTCommException {
 		devices = new Vector<BluetoothDevice>();
 		nxtInfos = new Vector<NXTInfo>();
-
 		if ((protocol & NXTCommFactory.BLUETOOTH) == 0){
 			return new NXTInfo[0];
-		}
-		if(mBluetoothAdapter==null){
-			if(!initConnection()){
-				return null;
-			}
-		}
-		if(mBluetoothAdapter==null){
-			return null;
 		}
 		devices.clear();
 		// If there are paired devices
@@ -87,131 +78,9 @@ public class NXTCommBluecove implements NXTComm {
 
 		return nxtInfos.toArray(new NXTInfo[nxtInfos.size()]);
 	}
-	
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-	  switch (requestCode) {
-	  case REQUEST_CONNECT_DEVICE:
-	      // When DeviceListActivity returns with a device to connect
-	      if (resultCode == Activity.RESULT_OK) {
-	          // Get the device MAC address
-//		          String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-	          // Get the BLuetoothDevice object
-//		          BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-	          // Attempt to connect to the device
-//		          mChatService.connect(device);
-	      }
-	      break;
-	  case REQUEST_ENABLE_BT:
-	      // When the request to enable Bluetooth returns
-	      if (resultCode == Activity.RESULT_OK) {
-	          // Bluetooth is now enabled, so set up a chat session
-	    	  try {
-				search("", NXTCommFactory.BLUETOOTH);
-			} catch (NXTCommException e) {
-			}
-	      }
-	      break;
-	  case REQUEST_ENABLE_SCAN:
-		  if (resultCode == SCANTIME) {
-			  mBluetoothAdapter.startDiscovery();			  
-		  }
-		  break;
-	  }
-	}
 
 	public BluetoothSocket getMmSocket() {
 		return mmSocket;
-	}
-	
-	public boolean initConnection(){
-		boolean result=true;
-		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (mBluetoothAdapter == null) {
-		    // Device does not support Bluetooth
-			return false;
-		}
-		if (!mBluetoothAdapter.isEnabled()) {
-			result=false;
-			//mBluetoothAdapter.enable();
-		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		    this.owner.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-		}
-		return result;
-	}
-
-	public void showDevices(){
-//		ArrayList<String> keys=new ArrayList<String>();
-//		ArrayList<String> values=new ArrayList<String>();
-//		for(BluetoothDevice device : devices){
-//			keys.add(device.getName());
-//			values.add(device.getAddress());
-//		}
-//		this.owner.showDevices(keys.toArray(new String[keys.size()]), values.toArray(new String[values.size()]));			
-		this.owner.showDevices(devices);
-	}
-	
-	public void scanBlueTooth(){
-		// Create a BroadcastReceiver for ACTION_FOUND
-		if(mReceiverFound==null){
-			mReceiverFound = new BroadcastReceiver() {
-				@Override
-			    public void onReceive(Context context, Intent intent) {
-			        String action = intent.getAction();
-			        // When discovery finds a device
-			        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-			            // Get the BluetoothDevice object from the Intent
-			            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-			            // Add the name and address to an array adapter to show in a ListView
-			            devices.add(device);
-			            //System.out.println("DEVICE: "+device.getName() + "\n" + device.getAddress());
-			        }
-			    }
-			};
-			// Register the BroadcastReceiver
-			this.owner.registerReceiver(mReceiverFound, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-
-			mReceiverScanMode = new BroadcastReceiver() {
-				@Override
-			    public void onReceive(Context context, Intent intent) {
-			        String action = intent.getAction();
-			        // When discovery finds a device
-			        if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(action)) {
-			        	if(resetScan!=null){
-			        		resetScan.cancel();
-			        		resetScan=null;
-			        	}
-			        	Integer mode=(Integer) intent.getExtras().get(BluetoothAdapter.EXTRA_SCAN_MODE);
-			        	//System.out.println(mode);
-			        	if(mode==BluetoothAdapter.SCAN_MODE_CONNECTABLE){
-			        		showDevices();
-			        	}
-			        }
-			    }
-			};
-			this.owner.registerReceiver(mReceiverScanMode, new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
-		}
-		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, SCANTIME);
-		this.owner.startActivityForResult(discoverableIntent, REQUEST_ENABLE_SCAN);
-		resetScan = new Timer();
-		resetScan.schedule(new TimerTask() {
-			public void run() {
-				if(NXTCommBluecove.this.devices.size()<1){
-					NXTCommBluecove.this.owner.showError("Fehler beim suchen");
-				}else{
-					showDevices();
-				}
-			}
-		}, SCANTIME*2*1000);
-		//this.owner.startActivity(discoverableIntent);
-	}
-	public void removeYou(){
-		if(mReceiverFound!=null){
-			this.owner.unregisterReceiver(mReceiverFound);
-		}
-		if(mReceiverScanMode!=null){
-			this.owner.unregisterReceiver(mReceiverScanMode);
-		}
 	}
 
 	@Override
@@ -227,14 +96,6 @@ public class NXTCommBluecove implements NXTComm {
 		}
 
 		try {
-			if(mBluetoothAdapter==null){
-				if(!initConnection()){
-					return false;
-				}
-			}
-			if(mBluetoothAdapter==null){
-				return false;
-			}
 			connecteddevice = mBluetoothAdapter.getRemoteDevice(nxt.deviceAddress);
 			if(connecteddevice!=null){
 				BluetoothSocket tmp =null;
