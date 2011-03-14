@@ -4,21 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.Vector;
 
-import de.uni_kassel.android.lego.all.Startup;
+import de.uni_kassel.android.lego.all.DataManager;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 
 /**
  * Implementation of NXTComm using the Bluecove libraries 
@@ -37,19 +30,9 @@ public class NXTCommBluecove implements NXTComm {
 	private BluetoothDevice connecteddevice=null;
 	private BluetoothSocket mmSocket;
 
-	// Intent request codes
-    private static final int REQUEST_CONNECT_DEVICE = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
-    private static final int REQUEST_ENABLE_SCAN = 3;
-    private static final int SCANTIME=10;
-//	private Startup owner;
-//	private BroadcastReceiver mReceiverFound=null;
-//	private BroadcastReceiver mReceiverScanMode=null;
-//	private Vector<BluetoothDevice> devices;
 	private boolean isopened=false;
 	
 	public static NXTCommBluecove instance;
-//	private Timer resetScan=null;
 	private BluetoothAdapter mBluetoothAdapter;
 	
 	public NXTCommBluecove(BluetoothAdapter mBluetoothAdapter){
@@ -57,25 +40,12 @@ public class NXTCommBluecove implements NXTComm {
 	}
 
 	public NXTInfo[] search(String name, int protocol) throws NXTCommException {
-		devices = new Vector<BluetoothDevice>();
+		
 		nxtInfos = new Vector<NXTInfo>();
 		if ((protocol & NXTCommFactory.BLUETOOTH) == 0){
 			return new NXTInfo[0];
 		}
-		devices.clear();
-		// If there are paired devices
-		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-		if (pairedDevices.size() > 0) {
-		    // Loop through paired devices
-		    for (BluetoothDevice device : pairedDevices) {
-		        // Add the name and address to an array adapter to show in a ListView
-		    	devices.add(device);
-		    }
-		}
-		if (!mBluetoothAdapter.isDiscovering()) {
-			scanBlueTooth();
-		}
-
+		
 		return nxtInfos.toArray(new NXTInfo[nxtInfos.size()]);
 	}
 
