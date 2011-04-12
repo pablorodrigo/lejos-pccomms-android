@@ -7,7 +7,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
-import de.uni_kassel.android.lego.all.DataManager;
+import org.raesch.java.lpcca.DataManager;
+
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
