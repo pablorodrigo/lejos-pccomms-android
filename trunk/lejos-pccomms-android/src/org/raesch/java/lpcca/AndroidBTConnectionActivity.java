@@ -1,25 +1,22 @@
 package org.raesch.java.lpcca;
 
-import java.io.IOException;
 import java.util.HashMap;
-
-
-import lejos.pc.comm.NXTCommBluecove;
-import lejos.pc.comm.NXTCommException;
-import lejos.pc.comm.NXTCommFactory;
-import lejos.pc.comm.NXTInfo;
-
 import org.raesch.java.lpcca.R;
+import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
+import org.raesch.java.lpcca.service.LPCCARemoteService;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -30,6 +27,7 @@ import android.widget.TextView;
 public class AndroidBTConnectionActivity extends Activity {
 
 	public static final int CONNECTION_ESTABLISHED = 42;
+	public static final int CONNECTION_FAILED = 43;
 	public static final int REQUEST_INIT = 23;
 	public static String KEY = "DEVICESKEY";
 	public static String VALUES = "DEVICESVALUES";
@@ -37,7 +35,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	public static String DEVICEMAC = "SELECTEDDEVICEMAC";
 	public static int SUCCESS = 1;
 	public static int CANCEL = 2;
-	
+
 	public static String LOGTAG = "LPCCA AndroidBTConnectionActivity";
 
 	private BroadcastReceiver bluetoothDeviceFoundBroadcastReceiver = null;
@@ -46,10 +44,11 @@ public class AndroidBTConnectionActivity extends Activity {
 	private HashMap<String, String> devices = new HashMap<String, String>();
 	private String deviceKey;
 	private String deviceMac;
-	private NXTCommBluecove nxtCommBluecove = null;
 	private Spinner deviceSpinner;
 	private TextView textView;
 	private Button connectBtn;
+
+	private InterfaceLPCCARemoteService myRemoteService = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +76,8 @@ public class AndroidBTConnectionActivity extends Activity {
 
 	private void setup() {
 		Log.d(LOGTAG, "Setup called, initialising connections.");
+		bindService(new Intent(LPCCARemoteService.class.getName()),
+				serviceConnection, Context.BIND_AUTO_CREATE);
 		initConnection();
 	}
 
@@ -86,7 +87,6 @@ public class AndroidBTConnectionActivity extends Activity {
 				String[] deviceKeys = (String[]) extras.get(KEY);
 				String[] deviceValues = (String[]) extras.get(VALUES);
 				for (int z = 0; z < deviceKeys.length; z++) {
-					// String[] value=deviceString[z].split(",");
 					devices.put(deviceKeys[z], deviceValues[z]);
 				}
 				ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(
@@ -101,21 +101,34 @@ public class AndroidBTConnectionActivity extends Activity {
 	public void onDeviceSelectClick() {
 		this.deviceKey = deviceSpinner.getSelectedItem().toString();
 		this.deviceMac = devices.get(deviceKey);
-		// TODO
-		if (deviceKey != null && deviceMac != null) {
-			NXTInfo nxtInfo = new NXTInfo(NXTCommFactory.BLUETOOTH, deviceKey,
-					deviceMac);
-			try {
-				nxtCommBluecove.open(nxtInfo);
-
-			} catch (NXTCommException e) {
-				showError("Fehler bei der Verbindung: " + e.getMessage());
-			}
-		}
-		DataManager.getInstance().setNxtCommBluecove(nxtCommBluecove);
+		/*
+		 * TODO call service to set up connection
+		 */
 		this.setResult(CONNECTION_ESTABLISHED);
+		try {
+			myRemoteService.establishBTConnection(deviceKey, deviceMac);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.setResult(CONNECTION_FAILED);
+		}
+
 		finish();
 	}
+
+	private ServiceConnection serviceConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			myRemoteService = InterfaceLPCCARemoteService.Stub
+					.asInterface(service);
+		}
+	};
 
 	public void initConnection() {
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -123,7 +136,6 @@ public class AndroidBTConnectionActivity extends Activity {
 			Log.e(LOGTAG, "No bluetooth adapter found.");
 		} else {
 			Log.d(LOGTAG, "Bluetooth adapter found.");
-			nxtCommBluecove = new NXTCommBluecove(mBluetoothAdapter);
 			if (!mBluetoothAdapter.isEnabled()) {
 				Log.d(LOGTAG,
 						"Bluetooth adapter not enabled, requesting enabling.");
@@ -138,30 +150,19 @@ public class AndroidBTConnectionActivity extends Activity {
 		}
 	}
 
-	public void unregisterReceivers() {
-		if (bluetoothDeviceFoundBroadcastReceiver != null) {
-			unregisterReceiver(bluetoothDeviceFoundBroadcastReceiver);
-		}
-		if (bluetoothScanModeChangedBroadcastReceiver != null) {
-			unregisterReceiver(bluetoothScanModeChangedBroadcastReceiver);
-		}
-	}
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
 		switch (requestCode) {
-		case DataManager.REQUEST_CONNECT_DEVICE:
-			// When DeviceListActivity returns with a device to connect
-			if (resultCode == Activity.RESULT_OK) {
-				// Get the device MAC address
-				// String address =
-				// data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-				// Get the BLuetoothDevice object
-				// BluetoothDevice device =
-			}
-			break;
-
+		/*
+		 * case DataManager.REQUEST_CONNECT_DEVICE: // When DeviceListActivity
+		 * returns with a device to connect if (resultCode ==
+		 * Activity.RESULT_OK) { // Get the device MAC address // String address
+		 * = //
+		 * data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+		 * // Get the BLuetoothDevice object // BluetoothDevice device = }
+		 * break;
+		 */
 		case DataManager.REQUEST_ENABLE_BT:
 			// When the request to enable Bluetooth returns
 			if (resultCode == Activity.RESULT_OK && mBluetoothAdapter != null) {
@@ -182,18 +183,7 @@ public class AndroidBTConnectionActivity extends Activity {
 
 	private void bluetoothEnabled() {
 		textView.setText("Bluetooth enabled, populating device list.");
-		/*
-		 * trying to avoid nxtcommbluecove // Bluetooth is now enabled, so set
-		 * up a chat session try { this.nxtCommBluecove = new NXTCommBluecove(
-		 * mBluetoothAdapter); nxtCommBluecove.search("",
-		 * NXTCommFactory.BLUETOOTH); } catch (NXTCommException e) {
-		 * Log.e(LOGTAG,
-		 * "Unable to get connection from NXTCommBluecove"); }
-		 */
 		registerDeviceReceiver();
-		// if (!mBluetoothAdapter.isDiscovering()) {
-		// }
-		// createDeviceList();
 	}
 
 	public void registerDeviceReceiver() {
@@ -222,7 +212,6 @@ public class AndroidBTConnectionActivity extends Activity {
 					}
 				}
 			};
-
 			// Register the BroadcastReceiver
 			registerReceiver(bluetoothDeviceFoundBroadcastReceiver,
 					new IntentFilter(BluetoothDevice.ACTION_FOUND));
@@ -270,9 +259,7 @@ public class AndroidBTConnectionActivity extends Activity {
 		devices.clear();
 		for (BluetoothDevice bluetoothDevice : DataManager.getInstance()
 				.getBluetoothDevices()) {
-			devices
-					.put(bluetoothDevice.getName(), bluetoothDevice
-							.getAddress());
+			devices.put(bluetoothDevice.getName(), bluetoothDevice.getAddress());
 		}
 		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, devices.keySet().toArray(
@@ -281,27 +268,31 @@ public class AndroidBTConnectionActivity extends Activity {
 		textView.setText("Please select your NXT from the list below.");
 		deviceSpinner.setVisibility(View.VISIBLE);
 		connectBtn.setVisibility(View.VISIBLE);
-
 	}
 
-	public void closeConnection() {
-		if (nxtCommBluecove != null) {
-			try {
-				nxtCommBluecove.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	/*
+	 * public void closeConnection() { if (nxtCommBluecove != null) { try {
+	 * nxtCommBluecove.close(); } catch (IOException e) { e.printStackTrace(); }
+	 * } }
+	 */
 
-	//@Override
+	// @Override
 	public void onDestroy() {
 		super.onDestroy();
-		// destroy objects
+		unbindService(serviceConnection);
 		unregisterReceivers();
-		
 	}
 
+	public void unregisterReceivers() {
+		if (bluetoothDeviceFoundBroadcastReceiver != null) {
+			unregisterReceiver(bluetoothDeviceFoundBroadcastReceiver);
+		}
+		if (bluetoothScanModeChangedBroadcastReceiver != null) {
+			unregisterReceiver(bluetoothScanModeChangedBroadcastReceiver);
+		}
+	}
+	
+	/*
 	public void showError(String text) {
 		runOnUiThread(new showErrorRun(this, text));
 	}
@@ -315,13 +306,13 @@ public class AndroidBTConnectionActivity extends Activity {
 			this.owner = owner;
 		}
 
-		//@Override
+		// @Override
 		public void run() {
 			AlertDialog.Builder builder = new AlertDialog.Builder(owner);
 			builder.setMessage(text);
 			AlertDialog alert = builder.create();
 			alert.show();
 		}
-
 	}
+	*/
 }
