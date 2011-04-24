@@ -54,7 +54,7 @@ public class NXTCommBluecove implements NXTComm {
 		return mmSocket;
 	}
 
-	@Override
+	//@Override
 	public boolean open(NXTInfo nxt, int mode) throws NXTCommException {
 		if (mode == RAW) throw new NXTCommException("RAW mode not implemented");
 		// Construct URL if not present

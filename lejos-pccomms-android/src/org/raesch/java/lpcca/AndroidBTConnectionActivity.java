@@ -37,6 +37,8 @@ public class AndroidBTConnectionActivity extends Activity {
 	public static String DEVICEMAC = "SELECTEDDEVICEMAC";
 	public static int SUCCESS = 1;
 	public static int CANCEL = 2;
+	
+	public static String LOGTAG = "LPCCA AndroidBTConnectionActivity";
 
 	private BroadcastReceiver bluetoothDeviceFoundBroadcastReceiver = null;
 	private BroadcastReceiver bluetoothScanModeChangedBroadcastReceiver = null;
@@ -51,7 +53,7 @@ public class AndroidBTConnectionActivity extends Activity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.d(DataManager.LOG_TAG, "Activity AndroidBTConnection started.");
+		Log.d(LOGTAG, "Activity AndroidBTConnection started.");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.deviceselection);
 		connectBtn = (Button) findViewById(R.id.ConnectBtn);
@@ -74,7 +76,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	}
 
 	private void setup() {
-		Log.d(DataManager.LOG_TAG, "Setup called, initialising connections.");
+		Log.d(LOGTAG, "Setup called, initialising connections.");
 		initConnection();
 	}
 
@@ -118,19 +120,19 @@ public class AndroidBTConnectionActivity extends Activity {
 	public void initConnection() {
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
-			Log.e(DataManager.LOG_TAG, "No bluetooth adapter found.");
+			Log.e(LOGTAG, "No bluetooth adapter found.");
 		} else {
-			Log.d(DataManager.LOG_TAG, "Bluetooth adapter found.");
+			Log.d(LOGTAG, "Bluetooth adapter found.");
 			nxtCommBluecove = new NXTCommBluecove(mBluetoothAdapter);
 			if (!mBluetoothAdapter.isEnabled()) {
-				Log.d(DataManager.LOG_TAG,
+				Log.d(LOGTAG,
 						"Bluetooth adapter not enabled, requesting enabling.");
 				Intent enableBtIntent = new Intent(
 						BluetoothAdapter.ACTION_REQUEST_ENABLE);
 				startActivityForResult(enableBtIntent,
 						DataManager.REQUEST_ENABLE_BT);
 			} else {
-				Log.d(DataManager.LOG_TAG, "BTAdapter found and enabled.");
+				Log.d(LOGTAG, "BTAdapter found and enabled.");
 				bluetoothEnabled();
 			}
 		}
@@ -163,10 +165,10 @@ public class AndroidBTConnectionActivity extends Activity {
 		case DataManager.REQUEST_ENABLE_BT:
 			// When the request to enable Bluetooth returns
 			if (resultCode == Activity.RESULT_OK && mBluetoothAdapter != null) {
-				Log.d(DataManager.LOG_TAG, "Bluetooth enabled successfully.");
+				Log.d(LOGTAG, "Bluetooth enabled successfully.");
 				bluetoothEnabled();
 			} else {
-				Log.e(DataManager.LOG_TAG, "Bluetooth enabling failed.");
+				Log.e(LOGTAG, "Bluetooth enabling failed.");
 			}
 			break;
 
@@ -185,7 +187,7 @@ public class AndroidBTConnectionActivity extends Activity {
 		 * up a chat session try { this.nxtCommBluecove = new NXTCommBluecove(
 		 * mBluetoothAdapter); nxtCommBluecove.search("",
 		 * NXTCommFactory.BLUETOOTH); } catch (NXTCommException e) {
-		 * Log.e(DataManager.LOG_TAG,
+		 * Log.e(LOGTAG,
 		 * "Unable to get connection from NXTCommBluecove"); }
 		 */
 		registerDeviceReceiver();
@@ -211,7 +213,7 @@ public class AndroidBTConnectionActivity extends Activity {
 						if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
 							DataManager.getInstance().getBluetoothDevices()
 									.add(device);
-							Log.d(DataManager.LOG_TAG,
+							Log.d(LOGTAG,
 									"Added discovered & paired device: "
 											+ device.getName() + ", "
 											+ device.getAddress());
@@ -283,7 +285,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	}
 
 	public void closeConnection() {
-		if (nxtCommBluecove == null) {
+		if (nxtCommBluecove != null) {
 			try {
 				nxtCommBluecove.close();
 			} catch (IOException e) {
@@ -292,11 +294,12 @@ public class AndroidBTConnectionActivity extends Activity {
 		}
 	}
 
-	@Override
+	//@Override
 	public void onDestroy() {
 		super.onDestroy();
 		// destroy objects
 		unregisterReceivers();
+		
 	}
 
 	public void showError(String text) {
@@ -312,7 +315,7 @@ public class AndroidBTConnectionActivity extends Activity {
 			this.owner = owner;
 		}
 
-		@Override
+		//@Override
 		public void run() {
 			AlertDialog.Builder builder = new AlertDialog.Builder(owner);
 			builder.setMessage(text);

@@ -5,6 +5,7 @@ import java.util.Vector;
 import lejos.pc.comm.NXTCommBluecove;
 
 import android.bluetooth.BluetoothDevice;
+import android.util.Log;
 
 public class DataManager {
 	public static final int REQUEST_CHOICE_DEVICE = 200;
@@ -13,7 +14,7 @@ public class DataManager {
 	public static final int REQUEST_ENABLE_BT = 2;
 	public static final int REQUEST_ENABLE_SCAN = 3;
 	public static final int SCANTIME=10;
-	public static final String LOG_TAG = "lejos_android";
+	public static final String LOGTAG = "LPCCA DataManager";
 	
 	private static DataManager instance;
 	private NXTCommBluecove nxtCommBluecove;
@@ -41,6 +42,7 @@ public class DataManager {
 
 	public void setNxtCommBluecove(NXTCommBluecove nxtCommBluecove) {
 		this.nxtCommBluecove = nxtCommBluecove;
+		Log.d(LOGTAG, "NXTCommBluecove set.");
 	}
 
 	public NXTCommBluecove getNxtCommBluecove() {
