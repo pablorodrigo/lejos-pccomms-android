@@ -1,137 +1,156 @@
 package org.raesch.java.lpcca.service;
 
 import lejos.nxt.Motor;
-import lejos.nxt.NXT;
-import lejos.nxt.Sound;
+import lejos.pc.comm.NXTCommBluecove;
+import lejos.pc.comm.NXTCommException;
+import lejos.pc.comm.NXTCommFactory;
+import lejos.pc.comm.NXTInfo;
 
 import org.raesch.java.lpcca.AndroidBTConnectionActivity;
 import org.raesch.java.lpcca.DataManager;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-public class LPCCARemoteService extends Service
-{
+public class LPCCARemoteService extends Service {
 
-    static String LOGTAG = "LPCCA RemoteService";
+	static String LOGTAG = "LPCCA RemoteService";
+	private NXTCommBluecove nxtCommBluecove = null;
+	private BluetoothAdapter mBluetoothAdapter;
 
-    @Override
-    public void onCreate()
-    {
-        super.onCreate();
-        Log.d(LOGTAG,"Service created.");
-    }
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.d(LOGTAG, "Service created.");
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBluetoothAdapter == null) {
+			Log.e(LOGTAG, "No bluetooth adapter found.");
+		} else {
+			Log.d(LOGTAG, "Bluetooth adapter found.");
+			nxtCommBluecove = new NXTCommBluecove(mBluetoothAdapter);
+		}
+	}
 
-    @Override
-    public IBinder onBind(Intent arg0)
-    {
-        Log.d(LOGTAG,"Received bind request.");
-        return myRemoteService;
-    }
+	@Override
+	public IBinder onBind(Intent arg0) {
+		Log.d(LOGTAG, "Received bind request: " + arg0.toString());
+		return myRemoteService;
+	}
 
-    private final InterfaceLPCCARemoteService.Stub myRemoteService = new InterfaceLPCCARemoteService.Stub()
-    {
+	private final InterfaceLPCCARemoteService.Stub myRemoteService = new InterfaceLPCCARemoteService.Stub() {
 
-        private DataManager dataManager;
+		private DataManager dataManager;
+		private String lastKey;
+		private String lastMac;
 
-        //@Override
-        public void requestConnectionToNXT() throws RemoteException
-        {
-            Log.d(LOGTAG,"Trying to establish bt connection via Activity.");
-            dataManager = DataManager.getInstance();
-            Intent remoteIntent = new Intent(getBaseContext(),AndroidBTConnectionActivity.class);
-            remoteIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getApplication().startActivity(remoteIntent);
-            /*while(dataManager.getNxtCommBluecove() == null){
-                Log.d(LOGTAG,"NXTCommBluecove not initialized.");
-            }
-            Sound.playTone(1000,100);
-            Log.d(LOGTAG,"NXTCommBluecove initialized.");
-            */
-        }
+		
+		/* (non-Javadoc)
+		 * This will establish the bluetooth connection to the specified device given by key & mac.
+		 * @see org.raesch.java.lpcca.service.InterfaceLPCCARemoteService#establishBTConnection(java.lang.String, java.lang.String)
+		 */
+		public void establishBTConnection(String deviceKey, String deviceMac) {
+			if (deviceKey != null && deviceMac != null) {
+				lastKey = deviceKey;
+				lastMac = deviceMac;
+				mBluetoothAdapter.cancelDiscovery();
+				NXTInfo nxtInfo = new NXTInfo(NXTCommFactory.BLUETOOTH, deviceKey,
+						deviceMac);
+				try {
+					nxtCommBluecove.open(nxtInfo);
+				} catch (NXTCommException e) {
+				}
+			}
+			DataManager.getInstance().setNxtCommBluecove(nxtCommBluecove);
+		}
+		
+		// @Override
+		/* (non-Javadoc)
+		 * This will open the activity so the user can choose a device he wants to connect to.
+		 * @see org.raesch.java.lpcca.service.InterfaceLPCCARemoteService#requestConnectionToNXT()
+		 */
+		public void requestConnectionToNXT() throws RemoteException {
+			Log.d(LOGTAG, "Trying to establish bt connection via Activity.");
+			dataManager = DataManager.getInstance();
+			Intent remoteIntent = new Intent(getBaseContext(),
+					AndroidBTConnectionActivity.class);
+			remoteIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			getApplication().startActivity(remoteIntent);
+		}
 
-        //@Override
-        public Navigator get() throws RemoteException
-        {
-            Navigator.Stub myRemoteNavigator = new Navigator.Stub()
-            {
-
-                //@Override
-                public void forward() throws RemoteException
-                {
-
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        Motor.A.forward();
-                        Motor.B.forward();
-                    }else{
-                    	String error = "Something wrong happened";
-                    	if(dataManager.getNxtCommBluecove() == null){
-                    		error = "NXTCommBluecove == null";
-                    	}else if (!dataManager.getNxtCommBluecove().isOpened()) {
-                    		error = "NXTCommBluecove not open";
-                    	}
-                    	Log.d(LOGTAG, error);
-                    }
-                }
-
-                //@Override
-                public void left() throws RemoteException
-                {
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        Motor.A.backward();
-                        Motor.B.forward();
-                    }
-                }
-
-                //@Override
-                public void right() throws RemoteException
-                {
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        Motor.A.forward();
-                        Motor.B.backward();
-                    }
-                }
-
-                //@Override
-                public void stop() throws RemoteException
-                {
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        Motor.A.stop();
-                        Motor.B.stop();
-                    }
-                }
-
-                //@Override
-                public void backward() throws RemoteException
-                {
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        Motor.A.backward();
-                        Motor.B.backward();
-                    }
-                }
-
-                //@Override
-                public boolean connected() throws RemoteException
-                {
-                    if (dataManager.getNxtCommBluecove() != null && dataManager.getNxtCommBluecove().isOpened())
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            };
-            return myRemoteNavigator;
-        }
-    };
+		// @Override
+		public Navigator get() throws RemoteException {
+			//only allow use of the navigator if the connection is fully established.
+			if(dataManager.getNxtCommBluecove() != null
+							&& dataManager.getNxtCommBluecove().isOpened()){
+				Log.d(LOGTAG, "Returning navigator, connection fully established.");
+				return myRemoteNavigator;
+			}else{
+				Log.d(LOGTAG, "Not returning navigator, connection not fully established.");
+				String error = "Something wrong happened";
+				if (dataManager.getNxtCommBluecove() == null) {
+					error = "NXTCommBluecove == null";
+				} else if (!dataManager.getNxtCommBluecove().isOpened()) {
+					error = "NXTCommBluecove not open";
+				}
+				Log.d(LOGTAG, error);
+				return null;
+			}
+		}
+		
+		Navigator.Stub myRemoteNavigator = new Navigator.Stub() {
+			// @Override
+			public void forward() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					Motor.A.forward();
+					Motor.B.forward();
+				}
+			}
+			// @Override
+			public void left() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					Motor.A.backward();
+					Motor.B.forward();
+				}
+			}
+			// @Override
+			public void right() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					Motor.A.forward();
+					Motor.B.backward();
+				}
+			}
+			// @Override
+			public void stop() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					Motor.A.stop();
+					Motor.B.stop();
+				}
+			}
+			// @Override
+			public void backward() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					Motor.A.backward();
+					Motor.B.backward();
+				}
+			}
+			// @Override
+			public boolean connected() throws RemoteException {
+				if (dataManager.getNxtCommBluecove() != null
+						&& dataManager.getNxtCommBluecove().isOpened()) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		};
+	};
 }
