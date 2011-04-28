@@ -1,6 +1,8 @@
 package org.raesch.java.lpcca;
 
 import java.util.HashMap;
+import java.util.Vector;
+
 import org.raesch.java.lpcca.R;
 import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
 import org.raesch.java.lpcca.service.LPCCARemoteService;
@@ -26,6 +28,12 @@ import android.widget.TextView;
 
 public class AndroidBTConnectionActivity extends Activity {
 
+	public static final int REQUEST_CHOICE_DEVICE = 200;
+	public static final int REQUEST_SETTINGS = 300;
+	public static final int REQUEST_CONNECT_DEVICE = 1;
+	public static final int REQUEST_ENABLE_BT = 2;
+	public static final int REQUEST_ENABLE_SCAN = 3;
+	public static final int SCANTIME = 10;
 	public static final int CONNECTION_ESTABLISHED = 42;
 	public static final int CONNECTION_FAILED = 43;
 	public static final int REQUEST_INIT = 23;
@@ -35,9 +43,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	public static String DEVICEMAC = "SELECTEDDEVICEMAC";
 	public static int SUCCESS = 1;
 	public static int CANCEL = 2;
-
 	public static String LOGTAG = "LPCCA AndroidBTConnectionActivity";
-
 	private BroadcastReceiver bluetoothDeviceFoundBroadcastReceiver = null;
 	private BroadcastReceiver bluetoothScanModeChangedBroadcastReceiver = null;
 	private BluetoothAdapter mBluetoothAdapter = null;
@@ -47,8 +53,8 @@ public class AndroidBTConnectionActivity extends Activity {
 	private Spinner deviceSpinner;
 	private TextView textView;
 	private Button connectBtn;
-
 	private InterfaceLPCCARemoteService myRemoteService = null;
+	private Vector<BluetoothDevice> bluetoothDevices = new Vector<BluetoothDevice>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -58,19 +64,15 @@ public class AndroidBTConnectionActivity extends Activity {
 		connectBtn = (Button) findViewById(R.id.ConnectBtn);
 		textView = (TextView) findViewById(R.id.TextView01);
 		deviceSpinner = (Spinner) findViewById(R.id.Devices);
-
 		connectBtn.setVisibility(View.INVISIBLE);
 		deviceSpinner.setVisibility(View.INVISIBLE);
-
 		textView.setText("Requesting bluetooth and populating device list.");
-
 		restoreInstance(this.getIntent().getExtras());
 		connectBtn.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				onDeviceSelectClick();
 			}
 		});
-
 		setup();
 	}
 
@@ -101,9 +103,6 @@ public class AndroidBTConnectionActivity extends Activity {
 	public void onDeviceSelectClick() {
 		this.deviceKey = deviceSpinner.getSelectedItem().toString();
 		this.deviceMac = devices.get(deviceKey);
-		/*
-		 * TODO call service to set up connection
-		 */
 		this.setResult(CONNECTION_ESTABLISHED);
 		try {
 			myRemoteService.establishBTConnection(deviceKey, deviceMac);
@@ -112,18 +111,16 @@ public class AndroidBTConnectionActivity extends Activity {
 			e.printStackTrace();
 			this.setResult(CONNECTION_FAILED);
 		}
-
 		finish();
 	}
 
 	private ServiceConnection serviceConnection = new ServiceConnection() {
-
-		@Override
+		// @Override
 		public void onServiceDisconnected(ComponentName name) {
 			// TODO Auto-generated method stub
 		}
 
-		@Override
+		// @Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			myRemoteService = InterfaceLPCCARemoteService.Stub
 					.asInterface(service);
@@ -141,8 +138,7 @@ public class AndroidBTConnectionActivity extends Activity {
 						"Bluetooth adapter not enabled, requesting enabling.");
 				Intent enableBtIntent = new Intent(
 						BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableBtIntent,
-						DataManager.REQUEST_ENABLE_BT);
+				startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 			} else {
 				Log.d(LOGTAG, "BTAdapter found and enabled.");
 				bluetoothEnabled();
@@ -150,20 +146,10 @@ public class AndroidBTConnectionActivity extends Activity {
 		}
 	}
 
-
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
-		/*
-		 * case DataManager.REQUEST_CONNECT_DEVICE: // When DeviceListActivity
-		 * returns with a device to connect if (resultCode ==
-		 * Activity.RESULT_OK) { // Get the device MAC address // String address
-		 * = //
-		 * data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-		 * // Get the BLuetoothDevice object // BluetoothDevice device = }
-		 * break;
-		 */
-		case DataManager.REQUEST_ENABLE_BT:
+		case REQUEST_ENABLE_BT:
 			// When the request to enable Bluetooth returns
 			if (resultCode == Activity.RESULT_OK && mBluetoothAdapter != null) {
 				Log.d(LOGTAG, "Bluetooth enabled successfully.");
@@ -172,9 +158,8 @@ public class AndroidBTConnectionActivity extends Activity {
 				Log.e(LOGTAG, "Bluetooth enabling failed.");
 			}
 			break;
-
-		case DataManager.REQUEST_ENABLE_SCAN:
-			if (resultCode == DataManager.SCANTIME) {
+		case REQUEST_ENABLE_SCAN:
+			if (resultCode == SCANTIME) {
 				mBluetoothAdapter.startDiscovery();
 			}
 			break;
@@ -201,8 +186,7 @@ public class AndroidBTConnectionActivity extends Activity {
 						// Add the name and address to an array adapter to show
 						// in a ListView
 						if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-							DataManager.getInstance().getBluetoothDevices()
-									.add(device);
+							bluetoothDevices.add(device);
 							Log.d(LOGTAG,
 									"Added discovered & paired device: "
 											+ device.getName() + ", "
@@ -215,50 +199,19 @@ public class AndroidBTConnectionActivity extends Activity {
 			// Register the BroadcastReceiver
 			registerReceiver(bluetoothDeviceFoundBroadcastReceiver,
 					new IntentFilter(BluetoothDevice.ACTION_FOUND));
-
-			/*
-			 * not sure if we really want this // Create a BroadcastReceiver for
-			 * ACTION_SCAN_MODE_CHANGED
-			 * bluetoothScanModeChangedBroadcastReceiver = new
-			 * BroadcastReceiver() {
-			 * 
-			 * @Override public void onReceive(Context context, Intent intent) {
-			 * String action = intent.getAction(); // When discovery finds a
-			 * device if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED
-			 * .equals(action)) { if (resetScan != null) { resetScan.cancel();
-			 * resetScan = null; } Integer mode = (Integer)
-			 * intent.getExtras().get( BluetoothAdapter.EXTRA_SCAN_MODE); //
-			 * System.out.println(mode); if (mode ==
-			 * BluetoothAdapter.SCAN_MODE_CONNECTABLE) { showDevices(); } } } };
-			 * 
-			 * // Register the BroadcastReceiver
-			 * registerReceiver(bluetoothScanModeChangedBroadcastReceiver, new
-			 * IntentFilter( BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
-			 */
 		}
-
 		Intent discoverableIntent = new Intent(
 				BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		discoverableIntent.putExtra(
 				BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-				DataManager.SCANTIME);
+				SCANTIME);
 		startActivityForResult(discoverableIntent,
-				DataManager.REQUEST_ENABLE_SCAN);
-
-		/*
-		 * resetScan = new Timer(); resetScan.schedule(new TimerTask() { public
-		 * void run() { if
-		 * (DataManager.getInstance().getBluetoothDevices().size() < 1) {
-		 * showError("No device found."); } else { createDeviceList(); } } },
-		 * DataManager.SCANTIME * 2 * 1000);
-		 */
-		// startActivity(discoverableIntent);
+				REQUEST_ENABLE_SCAN);
 	}
 
 	private void createDeviceList() {
 		devices.clear();
-		for (BluetoothDevice bluetoothDevice : DataManager.getInstance()
-				.getBluetoothDevices()) {
+		for (BluetoothDevice bluetoothDevice : bluetoothDevices) {
 			devices.put(bluetoothDevice.getName(), bluetoothDevice.getAddress());
 		}
 		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
@@ -269,12 +222,6 @@ public class AndroidBTConnectionActivity extends Activity {
 		deviceSpinner.setVisibility(View.VISIBLE);
 		connectBtn.setVisibility(View.VISIBLE);
 	}
-
-	/*
-	 * public void closeConnection() { if (nxtCommBluecove != null) { try {
-	 * nxtCommBluecove.close(); } catch (IOException e) { e.printStackTrace(); }
-	 * } }
-	 */
 
 	// @Override
 	public void onDestroy() {
@@ -291,28 +238,4 @@ public class AndroidBTConnectionActivity extends Activity {
 			unregisterReceiver(bluetoothScanModeChangedBroadcastReceiver);
 		}
 	}
-	
-	/*
-	public void showError(String text) {
-		runOnUiThread(new showErrorRun(this, text));
-	}
-
-	private class showErrorRun implements Runnable {
-		private String text = "";
-		private Context owner;
-
-		public showErrorRun(Context owner, String text) {
-			this.text = text;
-			this.owner = owner;
-		}
-
-		// @Override
-		public void run() {
-			AlertDialog.Builder builder = new AlertDialog.Builder(owner);
-			builder.setMessage(text);
-			AlertDialog alert = builder.create();
-			alert.show();
-		}
-	}
-	*/
 }
