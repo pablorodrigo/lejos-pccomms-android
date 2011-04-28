@@ -6,13 +6,10 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
-
-import org.raesch.java.lpcca.DataManager;
-
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 
 /**
  * Implementation of NXTComm using the Bluecove libraries 
@@ -24,6 +21,8 @@ import android.bluetooth.BluetoothSocket;
  *
  */
 public class NXTCommBluecove implements NXTComm {
+
+	public static final String LOGTAG = "LPCCA NXTCommBluecove";
     private static Vector<NXTInfo> nxtInfos;
 	private OutputStream os;
 	private InputStream is;
@@ -77,15 +76,21 @@ public class NXTCommBluecove implements NXTComm {
 	        	tmp = connecteddevice.createRfcommSocketToServiceRecord(uuid);
 
 		    	this.mmSocket=tmp;
+		    	Log.d(LOGTAG, "trying BTsocket.connect().");
 		    	this.mmSocket.connect();
+		    	Log.d(LOGTAG, "finished BTsocket.connect().");
 		    	instance=this;
 			}
+	    	Log.d(LOGTAG, "setting outputstream");
 			os = this.mmSocket.getOutputStream();
+	    	Log.d(LOGTAG, "setting inputstream");
 			is = this.mmSocket.getInputStream();
 			nxt.connectionState = (mode == LCP ? NXTConnectionState.LCP_CONNECTED : NXTConnectionState.PACKET_STREAM_CONNECTED);
-			isopened=true;
+	    	Log.d(LOGTAG, "setting isopened to true");
+	    	isopened=true;
 			return true;
 		} catch (IOException e) {
+	    	Log.d(LOGTAG, "exception during connect: "+e.getMessage());
 			nxt.connectionState = NXTConnectionState.DISCONNECTED;
 			throw new NXTCommException("Open of " + nxt.name + " failed: " + e.getMessage());
 		}
