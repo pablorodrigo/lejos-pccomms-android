@@ -126,7 +126,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	public void onDestroy() {
 		super.onDestroy();
 		unbindService(serviceConnection);
-		unregisterReceivers();
+//		unregisterReceivers();
 	}
 
 	public void unregisterReceivers() {
