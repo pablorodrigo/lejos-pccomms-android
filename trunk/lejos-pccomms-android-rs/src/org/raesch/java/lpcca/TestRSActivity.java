@@ -12,44 +12,151 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class TestRSActivity extends Activity {
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        
-        startService(new Intent(this,LPCCARemoteService.class));
-        
-        bindService();
-    }
-    
-    InterfaceLPCCARemoteService myRemoteService = null;
-    Navigator myNavigator = null;
-    
-    private void bindService() {
-    	bindService(new Intent(LPCCARemoteService.class.getName()), serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-    
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+	private Button forwardButton;
+	private Button bindServiceButton;
+	private Button startServiceButton;
+	private Button requestConnectionButton;
+	private Button backwardButton;
+	private Button leftButton;
+	private Button rightButton;
+	private Button stopButton;
+	
+	InterfaceLPCCARemoteService myRemoteService = null;
+
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
+
+		requestConnectionButton = (Button) findViewById(R.id.button2);
+		startServiceButton = (Button) findViewById(R.id.button1);
+		bindServiceButton = (Button) findViewById(R.id.button3);
+		forwardButton = (Button) findViewById(R.id.button4);
+		backwardButton = (Button) findViewById(R.id.button5);
+		leftButton = (Button) findViewById(R.id.button6);
+		rightButton = (Button) findViewById(R.id.button7);
+		stopButton = (Button) findViewById(R.id.button8);
 		
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			// TODO Auto-generated method stub
-			
-		}
+		requestConnectionButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				requestConnection();
+			}
+		});
 		
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			myRemoteService = InterfaceLPCCARemoteService.Stub.asInterface(service);
+		startServiceButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				startService(new Intent(LPCCARemoteService.class.getName()));
+			}
+		});
+		
+		bindServiceButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				bindService();
+			}
+		});
+
+		forwardButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+					myRemoteService.get().forward();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		backwardButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+					myRemoteService.get().backward();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		leftButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+					myRemoteService.get().left();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		rightButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+					myRemoteService.get().right();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		stopButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				try {
+					myRemoteService.get().stop();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		
+	}
+
+	void requestConnection() {
+		if (myRemoteService != null) {
 			try {
 				myRemoteService.requestConnectionToNXT();
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private void bindService() {
+		boolean success = bindService(new Intent(LPCCARemoteService.class.getName()),
+				serviceConnection, Context.BIND_AUTO_CREATE);
+		bindServiceButton.setText(Boolean.toString(success));
+	}
+
+	private boolean boundService = false;
+	private ServiceConnection serviceConnection = new ServiceConnection() {
+
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			myRemoteService = InterfaceLPCCARemoteService.Stub
+					.asInterface(service);
+			boundService = true;
+		}
+	};
+	
+	protected void onDestroy() {
+		super.onDestroy();
+		if(boundService){
+			unbindService(serviceConnection);
 		}
 	};
 }
