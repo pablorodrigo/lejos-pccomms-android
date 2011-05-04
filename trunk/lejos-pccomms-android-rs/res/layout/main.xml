@@ -9,4 +9,12 @@
     android:layout_height="wrap_content" 
     android:text="@string/hello"
     />
+<Button android:id="@+id/button1" android:layout_height="wrap_content" android:text="Start remote service" android:layout_width="fill_parent"></Button>
+<Button android:text="Bind remote service" android:id="@+id/button3" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+<Button android:id="@+id/button2" android:layout_height="wrap_content" android:text="Request connection from remote service" android:layout_width="fill_parent"></Button>
+<Button android:id="@+id/button4" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Forward"></Button>
+<Button android:id="@+id/button5" android:layout_height="wrap_content" android:text="Backward" android:layout_width="fill_parent"></Button>
+<Button android:id="@+id/button6" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Left"></Button>
+<Button android:id="@+id/button7" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Right"></Button>
+<Button android:id="@+id/button8" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Stop"></Button>
 </LinearLayout>

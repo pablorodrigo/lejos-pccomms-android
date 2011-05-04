@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World!</string>
+    <string name="hello">This activity lets you start the remote service and send a connection request.</string>
     <string name="app_name">RemoteService4LPCCA</string>
 </resources>
