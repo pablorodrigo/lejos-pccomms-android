@@ -22,24 +22,20 @@ public class StartScene extends Scene {
 
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
-
-	private Camera mCamera;
-	private TextureRegion mFaceTextureRegion;
-	private TextureRegion mOnScreenControlBaseTextureRegion;
-	private TextureRegion mOnScreenControlKnobTextureRegion;
+	
 
 	public StartScene(int pLayerCount) {
 		super(pLayerCount);
 
 		this.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
 
-		final int centerX = (CAMERA_WIDTH - this.mFaceTextureRegion.getWidth()) / 2;
-		final int centerY = (CAMERA_HEIGHT - this.mFaceTextureRegion
+		final int centerX = (CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
+		final int centerY = (CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
 				.getHeight()) / 2;
 
 		/* Create the face and add it to the scene. */
 		final Sprite face = new Sprite(centerX, centerY,
-				this.mFaceTextureRegion);
+				SharedRessource.mFaceTextureRegion);
 		this.getLastChild().attachChild(face);
 
 		final PhysicsHandler physicsHandler = new PhysicsHandler(face);
@@ -49,9 +45,9 @@ public class StartScene extends Scene {
 
 		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(
 				0, CAMERA_HEIGHT
-						- this.mOnScreenControlBaseTextureRegion.getHeight(),
-				this.mCamera, this.mOnScreenControlBaseTextureRegion,
-				this.mOnScreenControlKnobTextureRegion, 0.1f, 200,
+						- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(),
+						SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
+						SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200,
 				new IAnalogOnScreenControlListener() {
 					@Override
 					public void onControlChange(

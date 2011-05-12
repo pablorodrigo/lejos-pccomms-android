@@ -52,18 +52,23 @@ public class BootUpActivity extends BaseGameActivity {
 
 		this.mEngine.getTextureManager().loadTextures(SharedRessource.mTexture,
 				SharedRessource.mOnScreenControlTexture);
+		
+		
+		this.mEngine.setScene(new StartScene(1));
 	}
 
-	@Override
-	public Scene onLoadScene() {
-		StartScene startScene = new StartScene(1);
-		return startScene;
-	}
+	
 
 	@Override
 	public void onLoadComplete() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public Scene onLoadScene() {
+		// TODO Auto-generated method stub
+		return this.getEngine().getScene();
 	}
 
 }
