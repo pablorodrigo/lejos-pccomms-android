@@ -35,12 +35,7 @@ public class TestRSActivity extends Activity {
 		requestConnectionButton = (Button) findViewById(R.id.button2);
 		startServiceButton = (Button) findViewById(R.id.button1);
 		bindServiceButton = (Button) findViewById(R.id.button3);
-		forwardButton = (Button) findViewById(R.id.button4);
-		backwardButton = (Button) findViewById(R.id.button5);
-		leftButton = (Button) findViewById(R.id.button6);
-		rightButton = (Button) findViewById(R.id.button7);
-		stopButton = (Button) findViewById(R.id.button8);
-
+		
 		requestConnectionButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
