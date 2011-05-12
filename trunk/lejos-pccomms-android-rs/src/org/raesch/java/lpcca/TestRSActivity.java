@@ -2,7 +2,6 @@ package org.raesch.java.lpcca;
 
 import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
 import org.raesch.java.lpcca.service.LPCCARemoteService;
-import org.raesch.java.lpcca.service.Navigator;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -25,7 +24,7 @@ public class TestRSActivity extends Activity {
 	private Button leftButton;
 	private Button rightButton;
 	private Button stopButton;
-	
+	//
 	InterfaceLPCCARemoteService myRemoteService = null;
 
 	/** Called when the activity is first created. */
@@ -42,26 +41,30 @@ public class TestRSActivity extends Activity {
 		leftButton = (Button) findViewById(R.id.button6);
 		rightButton = (Button) findViewById(R.id.button7);
 		stopButton = (Button) findViewById(R.id.button8);
-		
+
 		requestConnectionButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				requestConnection();
 			}
 		});
-		
+
 		startServiceButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				startService(new Intent(LPCCARemoteService.class.getName()));
 			}
 		});
-		
+
 		bindServiceButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				bindService();
 			}
 		});
 
 		forwardButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				try {
 					myRemoteService.get().forward();
@@ -73,6 +76,7 @@ public class TestRSActivity extends Activity {
 		});
 
 		backwardButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				try {
 					myRemoteService.get().backward();
@@ -84,6 +88,7 @@ public class TestRSActivity extends Activity {
 		});
 
 		leftButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				try {
 					myRemoteService.get().left();
@@ -95,6 +100,7 @@ public class TestRSActivity extends Activity {
 		});
 
 		rightButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				try {
 					myRemoteService.get().right();
@@ -104,8 +110,9 @@ public class TestRSActivity extends Activity {
 				}
 			}
 		});
-		
+
 		stopButton.setOnClickListener(new OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				try {
 					myRemoteService.get().stop();
@@ -115,7 +122,7 @@ public class TestRSActivity extends Activity {
 				}
 			}
 		});
-		
+
 	}
 
 	void requestConnection() {
@@ -128,16 +135,16 @@ public class TestRSActivity extends Activity {
 			}
 		}
 	}
-	
+
 	private void bindService() {
-		boolean success = bindService(new Intent(LPCCARemoteService.class.getName()),
+		boolean success = bindService(
+				new Intent(LPCCARemoteService.class.getName()),
 				serviceConnection, Context.BIND_AUTO_CREATE);
 		bindServiceButton.setText(Boolean.toString(success));
 	}
 
 	private boolean boundService = false;
-	private ServiceConnection serviceConnection = new ServiceConnection() {
-
+	private final ServiceConnection serviceConnection = new ServiceConnection() {
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
@@ -152,10 +159,11 @@ public class TestRSActivity extends Activity {
 			boundService = true;
 		}
 	};
-	
+
+	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if(boundService){
+		if (boundService) {
 			unbindService(serviceConnection);
 		}
 	};
