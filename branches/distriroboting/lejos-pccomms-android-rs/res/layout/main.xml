@@ -6,8 +6,6 @@
 		android:layout_height="wrap_content" android:text="@string/hello" />
 	<Button android:id="@+id/button1" android:layout_height="wrap_content"
 		android:text="Start remote service" android:layout_width="fill_parent"></Button>
-	<Button android:text="Bind remote service" android:id="@+id/button3"
-		android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
 	<Button android:id="@+id/button2" android:layout_height="wrap_content"
 		android:text="Request connection from remote service"
 		android:layout_width="fill_parent"></Button>
