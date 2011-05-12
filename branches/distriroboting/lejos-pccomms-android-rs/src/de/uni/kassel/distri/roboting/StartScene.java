@@ -27,7 +27,7 @@ public class StartScene extends Scene {
 	public StartScene(int pLayerCount) {
 		super(pLayerCount);
 
-		this.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
+		this.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 
 		final int centerX = (CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
 		final int centerY = (CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
@@ -44,7 +44,7 @@ public class StartScene extends Scene {
 		this.getLastChild().attachChild(face);
 
 		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(
-				0, CAMERA_HEIGHT
+				CAMERA_WIDTH/2-SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()/2, CAMERA_HEIGHT/4*3
 						- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(),
 						SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
 						SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200,
