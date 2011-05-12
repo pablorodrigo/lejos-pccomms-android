@@ -34,7 +34,8 @@ public class TestRSActivity extends Activity {
 
 		requestConnectionButton = (Button) findViewById(R.id.button2);
 		startServiceButton = (Button) findViewById(R.id.button1);
-
+		bindServiceButton = (Button) findViewById(R.id.button3);
+		
 		requestConnectionButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {

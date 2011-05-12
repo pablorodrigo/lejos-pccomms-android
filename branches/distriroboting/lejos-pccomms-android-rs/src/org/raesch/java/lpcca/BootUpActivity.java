@@ -80,14 +80,14 @@ public class BootUpActivity extends LayoutGameActivity {
 		return this.getEngine().getScene();
 	}
 
-	@Override
-	protected int getLayoutID() {
-		return R.layout.main;
-	}
+	  @Override
+      protected int getLayoutID() {
+              return R.layout.main;
+      }
 
-	@Override
-	protected int getRenderSurfaceViewID() {
-		return R.id.xmllayoutexample_rendersurfaceview;
-	}
+      @Override
+      protected int getRenderSurfaceViewID() {
+              return R.id.xmllayoutexample_rendersurfaceview;
+      }
 
 }
