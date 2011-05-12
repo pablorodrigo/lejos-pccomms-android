@@ -65,7 +65,7 @@ public class BootUpActivity extends LayoutGameActivity {
 		SharedRessource.requestConnectionButton = requestConnectionButton;
 		SharedRessource.startServiceButton = startServiceButton;
 
-		this.mEngine.setScene(new StartScene(1));
+		this.mEngine.setScene(new StartScene(1, this));
 	}
 
 	@Override
