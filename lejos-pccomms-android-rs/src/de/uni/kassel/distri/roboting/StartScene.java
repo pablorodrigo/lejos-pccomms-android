@@ -20,8 +20,7 @@ import android.view.MotionEvent;
 
 public class StartScene extends Scene {
 
-	private static final int CAMERA_WIDTH = 720;
-	private static final int CAMERA_HEIGHT = 480;
+
 	
 
 	public StartScene(int pLayerCount) {
@@ -29,8 +28,8 @@ public class StartScene extends Scene {
 
 		this.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 
-		final int centerX = (CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
-		final int centerY = (CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
+		final int centerX = (SharedRessource.CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
+		final int centerY = (SharedRessource.CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
 				.getHeight()) / 2;
 
 		/* Create the face and add it to the scene. */
@@ -44,7 +43,7 @@ public class StartScene extends Scene {
 		this.getLastChild().attachChild(face);
 
 		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(
-				CAMERA_WIDTH/2-SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()/2, CAMERA_HEIGHT/4*3
+				SharedRessource.CAMERA_WIDTH/2-SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()/2, SharedRessource.CAMERA_HEIGHT/4*3
 						- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(),
 						SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
 						SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200,
