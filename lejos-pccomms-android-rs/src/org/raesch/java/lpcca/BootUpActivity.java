@@ -10,12 +10,13 @@ import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
+import org.anddev.andengine.ui.activity.LayoutGameActivity;
 
 import de.uni.kassel.distri.roboting.SharedRessource;
 import de.uni.kassel.distri.roboting.StartScene;
 
 
-public class BootUpActivity extends BaseGameActivity {
+public class BootUpActivity extends LayoutGameActivity {
 
 	@Override
 	public Engine onLoadEngine() {
@@ -23,7 +24,7 @@ public class BootUpActivity extends BaseGameActivity {
 		SharedRessource.mCamera = new Camera(0, 0,
 				SharedRessource.CAMERA_WIDTH, SharedRessource.CAMERA_HEIGHT);
 		return new Engine(
-				new EngineOptions(true, ScreenOrientation.LANDSCAPE,
+				new EngineOptions(true, ScreenOrientation.PORTRAIT,
 						new RatioResolutionPolicy(SharedRessource.CAMERA_WIDTH,
 								SharedRessource.CAMERA_HEIGHT),
 						SharedRessource.mCamera));
@@ -70,5 +71,15 @@ public class BootUpActivity extends BaseGameActivity {
 		// TODO Auto-generated method stub
 		return this.getEngine().getScene();
 	}
+
+	  @Override
+      protected int getLayoutID() {
+              return R.layout.main;
+      }
+
+      @Override
+      protected int getRenderSurfaceViewID() {
+              return R.id.xmllayoutexample_rendersurfaceview;
+      }
 
 }

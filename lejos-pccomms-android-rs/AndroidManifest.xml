@@ -23,12 +23,14 @@
         </activity>
 
         <activity android:name=".AndroidBTConnectionActivity"/>
+        
 
 		<service android:name=".service.LPCCARemoteService">
 			<intent-filter>
 				<action android:name="org.raesch.java.lpcca.service.LPCCARemoteService" />
 			</intent-filter>
 		</service>
+		
 
 	</application>
     <uses-sdk android:minSdkVersion="7" />
