@@ -24,7 +24,6 @@ public class TestRSActivity extends Activity {
 	private Button leftButton;
 	private Button rightButton;
 	private Button stopButton;
-	//
 	InterfaceLPCCARemoteService myRemoteService = null;
 
 	/** Called when the activity is first created. */
