@@ -12,7 +12,16 @@ import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.input.touch.TouchEvent;
+import org.raesch.java.lpcca.BootUpActivity;
+import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
+import org.raesch.java.lpcca.service.LPCCARemoteService;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,16 +29,43 @@ import android.view.View.OnClickListener;
 
 public class StartScene extends Scene {
 
+	private BootUpActivity bootUpActivity;
+	
+	private final ServiceConnection serviceConnection = new ServiceConnection() {
 
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			SharedRessource.myRemoteService = InterfaceLPCCARemoteService.Stub
+					.asInterface(service);
+			
+		}
+	};
 	
 
-	public StartScene(int pLayerCount) {
+	public StartScene(int pLayerCount, final BootUpActivity bootUpActivity) {
 		super(pLayerCount);
+		this.bootUpActivity=bootUpActivity;
 
 		SharedRessource.startServiceButton
 		.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				bootUpActivity.startService(new Intent(LPCCARemoteService.class.getName()));
+				 bootUpActivity.bindService(
+							new Intent(LPCCARemoteService.class.getName()),
+							serviceConnection, Context.BIND_AUTO_CREATE);
+				 try {
+					SharedRessource.myRemoteService.requestConnectionToNXT();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				Log.i("button", "start service clicked");
 			}
 		});
@@ -114,6 +150,11 @@ SharedRessource.requestConnectionButton
 
 		this.setChildScene(analogOnScreenControl);
 
+		
+		
+		
 	}
+	
+	
 
 }

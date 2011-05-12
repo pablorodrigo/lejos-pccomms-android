@@ -3,6 +3,7 @@ package de.uni.kassel.distri.roboting;
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
+import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
 
 import android.widget.Button;
 
@@ -19,5 +20,6 @@ public class SharedRessource {
 
 	public static Button startServiceButton;
 	public static Button requestConnectionButton;
+	public static InterfaceLPCCARemoteService myRemoteService = null;
 
 }
