@@ -9,25 +9,29 @@ import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
-import org.anddev.andengine.ui.activity.BaseGameActivity;
 import org.anddev.andengine.ui.activity.LayoutGameActivity;
 
+import android.widget.Button;
 import de.uni.kassel.distri.roboting.SharedRessource;
 import de.uni.kassel.distri.roboting.StartScene;
 
-
 public class BootUpActivity extends LayoutGameActivity {
+
+	private Button startServiceButton;
+	private Button requestConnectionButton;
 
 	@Override
 	public Engine onLoadEngine() {
 
 		SharedRessource.mCamera = new Camera(0, 0,
 				SharedRessource.CAMERA_WIDTH, SharedRessource.CAMERA_HEIGHT);
+
 		return new Engine(
 				new EngineOptions(true, ScreenOrientation.PORTRAIT,
 						new RatioResolutionPolicy(SharedRessource.CAMERA_WIDTH,
 								SharedRessource.CAMERA_HEIGHT),
 						SharedRessource.mCamera));
+
 	}
 
 	@Override
@@ -53,12 +57,16 @@ public class BootUpActivity extends LayoutGameActivity {
 
 		this.mEngine.getTextureManager().loadTextures(SharedRessource.mTexture,
 				SharedRessource.mOnScreenControlTexture);
-		
-		
+
+		startServiceButton = (Button) findViewById(R.id.button1);
+
+		requestConnectionButton = (Button) findViewById(R.id.button2);
+
+		SharedRessource.requestConnectionButton = requestConnectionButton;
+		SharedRessource.startServiceButton = startServiceButton;
+
 		this.mEngine.setScene(new StartScene(1));
 	}
-
-	
 
 	@Override
 	public void onLoadComplete() {
@@ -72,14 +80,14 @@ public class BootUpActivity extends LayoutGameActivity {
 		return this.getEngine().getScene();
 	}
 
-	  @Override
-      protected int getLayoutID() {
-              return R.layout.main;
-      }
+	@Override
+	protected int getLayoutID() {
+		return R.layout.main;
+	}
 
-      @Override
-      protected int getRenderSurfaceViewID() {
-              return R.id.xmllayoutexample_rendersurfaceview;
-      }
+	@Override
+	protected int getRenderSurfaceViewID() {
+		return R.id.xmllayoutexample_rendersurfaceview;
+	}
 
 }

@@ -4,6 +4,8 @@ import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 
+import android.widget.Button;
+
 public class SharedRessource {
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
@@ -14,5 +16,8 @@ public class SharedRessource {
 	public static Texture mOnScreenControlTexture;
 	public static TextureRegion mOnScreenControlBaseTextureRegion;
 	public static TextureRegion mOnScreenControlKnobTextureRegion;
+
+	public static Button startServiceButton;
+	public static Button requestConnectionButton;
 
 }

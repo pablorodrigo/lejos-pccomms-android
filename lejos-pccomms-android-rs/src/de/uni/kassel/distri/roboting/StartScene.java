@@ -2,7 +2,6 @@ package de.uni.kassel.distri.roboting;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.camera.hud.controls.AnalogOnScreenControl;
 import org.anddev.andengine.engine.camera.hud.controls.AnalogOnScreenControl.IAnalogOnScreenControlListener;
 import org.anddev.andengine.engine.camera.hud.controls.BaseOnScreenControl;
@@ -13,21 +12,39 @@ import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.input.touch.TouchEvent;
-import org.anddev.andengine.opengl.texture.region.TextureRegion;
 
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
 
 public class StartScene extends Scene {
 
 
-	
 
 	public StartScene(int pLayerCount) {
 		super(pLayerCount);
 
+		SharedRessource.startServiceButton
+				.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Log.i("button", "start service clicked");
+					}
+				});
+		SharedRessource.requestConnectionButton
+				.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Log.i("button", "request clicked");
+					}
+				});
+
 		this.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 
+		final int centerX = (CAMERA_WIDTH - SharedRessource.mFaceTextureRegion
+				.getWidth()) / 2;
+		final int centerY = (CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
 		final int centerX = (SharedRessource.CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
 		final int centerY = (SharedRessource.CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
 				.getHeight()) / 2;
@@ -43,6 +60,17 @@ public class StartScene extends Scene {
 		this.getLastChild().attachChild(face);
 
 		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(
+				CAMERA_WIDTH
+						/ 2
+						- SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()
+						/ 2,
+				CAMERA_HEIGHT
+						/ 4
+						* 3
+						- SharedRessource.mOnScreenControlBaseTextureRegion
+								.getHeight(), SharedRessource.mCamera,
+				SharedRessource.mOnScreenControlBaseTextureRegion,
+				SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200,
 				SharedRessource.CAMERA_WIDTH/2-SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()/2, SharedRessource.CAMERA_HEIGHT/4*3
 						- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(),
 						SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
