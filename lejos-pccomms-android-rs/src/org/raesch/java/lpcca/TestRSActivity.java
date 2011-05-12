@@ -17,7 +17,6 @@ import android.widget.Button;
 
 public class TestRSActivity extends Activity {
 	private Button forwardButton;
-	private Button bindServiceButton;
 	private Button startServiceButton;
 	private Button requestConnectionButton;
 	private Button backwardButton;
@@ -34,7 +33,6 @@ public class TestRSActivity extends Activity {
 
 		requestConnectionButton = (Button) findViewById(R.id.button2);
 		startServiceButton = (Button) findViewById(R.id.button1);
-		bindServiceButton = (Button) findViewById(R.id.button3);
 		
 		requestConnectionButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -50,12 +48,7 @@ public class TestRSActivity extends Activity {
 			}
 		});
 
-		bindServiceButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				bindService();
-			}
-		});
+		
 
 		forwardButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -134,7 +127,7 @@ public class TestRSActivity extends Activity {
 		boolean success = bindService(
 				new Intent(LPCCARemoteService.class.getName()),
 				serviceConnection, Context.BIND_AUTO_CREATE);
-		bindServiceButton.setText(Boolean.toString(success));
+		
 	}
 
 	private boolean boundService = false;
