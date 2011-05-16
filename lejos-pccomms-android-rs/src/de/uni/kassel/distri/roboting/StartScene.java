@@ -2,6 +2,8 @@ package de.uni.kassel.distri.roboting;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import lejos.nxt.Motor;
+
 import org.anddev.andengine.engine.camera.hud.controls.AnalogOnScreenControl;
 import org.anddev.andengine.engine.camera.hud.controls.AnalogOnScreenControl.IAnalogOnScreenControlListener;
 import org.anddev.andengine.engine.camera.hud.controls.BaseOnScreenControl;
@@ -30,7 +32,11 @@ import android.view.View.OnClickListener;
 public class StartScene extends Scene {
 
 	private BootUpActivity bootUpActivity;
-	
+	private Boolean connected = false;
+	private Long currentTimeMillis;
+	private Long nextTimeMillis;
+	private long offset = 100;
+
 	private final ServiceConnection serviceConnection = new ServiceConnection() {
 
 		@Override
@@ -41,36 +47,33 @@ public class StartScene extends Scene {
 
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			SharedRessource.myRemoteService = InterfaceLPCCARemoteService.Stub
-					.asInterface(service);
-			
-		}
-	};
-	
-
-	public StartScene(int pLayerCount, final BootUpActivity bootUpActivity) {
-		super(pLayerCount);
-		this.bootUpActivity=bootUpActivity;
-
-		SharedRessource.startServiceButton
-		.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				bootUpActivity.startService(new Intent(LPCCARemoteService.class.getName()));
-				 bootUpActivity.bindService(
-							new Intent(LPCCARemoteService.class.getName()),
-							serviceConnection, Context.BIND_AUTO_CREATE);
-				 try {
+			SharedRessource.myRemoteService = InterfaceLPCCARemoteService.Stub.asInterface(service);
+			if (SharedRessource.myRemoteService != null) {
+				try {
 					SharedRessource.myRemoteService.requestConnectionToNXT();
+					connected = true;
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
+		}
+	};
+
+	public StartScene(int pLayerCount, final BootUpActivity bootUpActivity) {
+		super(pLayerCount);
+		this.bootUpActivity = bootUpActivity;
+
+		SharedRessource.startServiceButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				bootUpActivity.startService(new Intent(LPCCARemoteService.class.getName()));
+				bootUpActivity.bindService(new Intent(LPCCARemoteService.class.getName()), serviceConnection, Context.BIND_AUTO_CREATE);
+
 				Log.i("button", "start service clicked");
 			}
 		});
-SharedRessource.requestConnectionButton
-		.setOnClickListener(new OnClickListener() {
+		SharedRessource.requestConnectionButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Log.i("button", "request clicked");
@@ -79,48 +82,75 @@ SharedRessource.requestConnectionButton
 		this.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 
 		final int centerX = (SharedRessource.CAMERA_WIDTH - SharedRessource.mFaceTextureRegion.getWidth()) / 2;
-		final int centerY = (SharedRessource.CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion
-				.getHeight()) / 2;
+		final int centerY = (SharedRessource.CAMERA_HEIGHT - SharedRessource.mFaceTextureRegion.getHeight()) / 2;
 
-		/* Create the face and add it to the scene. */
-		final Sprite face = new Sprite(centerX, centerY,
-				SharedRessource.mFaceTextureRegion);
-		this.getLastChild().attachChild(face);
 
-		final PhysicsHandler physicsHandler = new PhysicsHandler(face);
-		face.registerUpdateHandler(physicsHandler);
-
-		this.getLastChild().attachChild(face);
-
-		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(
-				SharedRessource.CAMERA_WIDTH/2-SharedRessource.mOnScreenControlBaseTextureRegion.getWidth()/2, SharedRessource.CAMERA_HEIGHT/4*3
-						- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(),
-						SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
-						SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200,
-				new IAnalogOnScreenControlListener() {
+		final AnalogOnScreenControl analogOnScreenControl = new AnalogOnScreenControl(SharedRessource.CAMERA_WIDTH / 2
+				- SharedRessource.mOnScreenControlBaseTextureRegion.getWidth() / 2, SharedRessource.CAMERA_HEIGHT 
+				- SharedRessource.mOnScreenControlBaseTextureRegion.getHeight(), SharedRessource.mCamera, SharedRessource.mOnScreenControlBaseTextureRegion,
+				SharedRessource.mOnScreenControlKnobTextureRegion, 0.1f, 200, new IAnalogOnScreenControlListener() {
 					@Override
-					public void onControlChange(
-							final BaseOnScreenControl pBaseOnScreenControl,
-							final float pValueX, final float pValueY) {
-						physicsHandler
-								.setVelocity(pValueX * 100, pValueY * 100);
+					public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY) {
+
+						if (connected == true) {
+
+							currentTimeMillis = System.currentTimeMillis();
+							if (nextTimeMillis == null || currentTimeMillis > nextTimeMillis) {
+
+								float mA = 0;
+								float mB = 0;
+								if (pValueX > 0) {
+									mA =  0;
+									mB = pValueX * 1000 / 2;
+								} else {
+									mA = Math.abs(pValueX) * 1000 / 2;
+									mB = 0;
+
+								}
+
+								if (pValueY > 0) {
+									mA += pValueY * 1000 / 2;
+									mB += pValueY * 1000 / 2;
+									Motor.A.setSpeed((int) mA);
+									Motor.B.setSpeed((int) (mB));
+									Motor.A.rotate(10000, true);
+									Motor.B.rotate(10000, true);
+
+								}
+								if (pValueY < 0) {
+									mA += Math.abs(pValueY) * 1000 / 2;
+									mB += Math.abs(pValueY) * 1000 / 2;
+									Motor.A.setSpeed((int) mA);
+									Motor.B.setSpeed((int) (mB));
+									Motor.A.rotate((-1) * 10000, true);
+									Motor.B.rotate((-1) * 10000, true);
+
+								}
+
+								if (pValueX == 0 && pValueY == 0) {
+									Motor.A.stop();
+									Motor.B.stop();
+								}
+
+								nextTimeMillis = currentTimeMillis + offset;
+								Log.i("Motor", "MotorA: " + mA);
+								Log.i("Motor", "MotorB: " + mB);
+
+							}
+
+						}
 					}
 
 					@Override
-					public void onControlClick(
-							final AnalogOnScreenControl pAnalogOnScreenControl) {
-						face.registerEntityModifier(new SequenceEntityModifier(
-								new ScaleModifier(0.25f, 1, 1.5f),
-								new ScaleModifier(0.25f, 1.5f, 1)));
+					public void onControlClick(final AnalogOnScreenControl pAnalogOnScreenControl) {
+						//face.registerEntityModifier(new SequenceEntityModifier(new ScaleModifier(0.25f, 1, 1.5f), new ScaleModifier(0.25f, 1.5f, 1)));
 					}
 				});
 
 		IOnAreaTouchListener ioAreaTouchListener = new IOnAreaTouchListener() {
 
 			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					ITouchArea pTouchArea, float pTouchAreaLocalX,
-					float pTouchAreaLocalY) {
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, ITouchArea pTouchArea, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				switch (pSceneTouchEvent.getAction()) {
 				case MotionEvent.ACTION_DOWN:
 					// pButton.press(1);
@@ -138,10 +168,9 @@ SharedRessource.requestConnectionButton
 		};
 		this.setOnAreaTouchListener(ioAreaTouchListener);
 		// scene.getLastChild().attachChild(pButton);
-		this.registerTouchArea(face);
+		//this.registerTouchArea(face);
 
-		analogOnScreenControl.getControlBase().setBlendFunction(
-				GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		analogOnScreenControl.getControlBase().setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		analogOnScreenControl.getControlBase().setAlpha(0.5f);
 		analogOnScreenControl.getControlBase().setScaleCenter(0, 128);
 		analogOnScreenControl.getControlBase().setScale(1.25f);
@@ -150,11 +179,6 @@ SharedRessource.requestConnectionButton
 
 		this.setChildScene(analogOnScreenControl);
 
-		
-		
-		
 	}
-	
-	
 
 }

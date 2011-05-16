@@ -8,8 +8,8 @@ import org.raesch.java.lpcca.service.InterfaceLPCCARemoteService;
 import android.widget.Button;
 
 public class SharedRessource {
-	public static final int CAMERA_WIDTH = 720;
-	public static final int CAMERA_HEIGHT = 480;
+	public static final int CAMERA_WIDTH = 360;
+	public static final int CAMERA_HEIGHT = 240;
 
 	public static Camera mCamera;
 	public static Texture mTexture;
