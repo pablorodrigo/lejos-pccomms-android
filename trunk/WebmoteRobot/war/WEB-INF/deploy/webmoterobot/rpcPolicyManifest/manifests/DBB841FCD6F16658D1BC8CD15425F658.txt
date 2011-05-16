@@ -1,0 +1,2 @@
+serviceClass: org.raesch.webmoterobot.client.NXTControlService
+path: EC654431A83B67080DA67897A01C367B.gwt.rpc

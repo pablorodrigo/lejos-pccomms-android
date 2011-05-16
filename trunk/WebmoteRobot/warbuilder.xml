@@ -1,0 +1,29 @@
+<project name="webapp" basedir="." default="default">
+ 
+	<target name="default" depends="dx-script,buildwar,deploy">
+		
+	</target>
+ 
+	<target name="buildwar">
+		<war basedir="war" destfile="webapp.war" webxml="war/WEB-INF/web.xml">
+			<exclude name="WEB-INF/**" />
+			<webinf dir="war/WEB-INF/">
+				<include name="**/*.zip" />
+			</webinf>
+		</war>
+		<jar destfile="war/WEB-INF/lib/webapp.jar" basedir="war/WEB-INF/classes">
+		            <manifest></manifest>
+		</jar>
+	</target>
+ 
+	<target name="deploy">
+		<copy file="webapp.war" todir="." />
+	</target>
+ 
+	<target name="dx-script">
+		<exec executable="/bin/bash">
+			<arg value="builddex.sh"/>
+		</exec>
+	</target>
+	
+</project>
