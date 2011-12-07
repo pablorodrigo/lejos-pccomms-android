@@ -2,6 +2,7 @@ package org.raesch.java.lpcca.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
@@ -25,12 +26,14 @@ import android.util.Log;
 public class LPCCARemoteService extends Service {
 
 	public static final String NXT_FOUND = "org.raesch.java.lpcca.service.NXT_FOUND";
+
+	protected static final String LEGO_NXT_ID = "001653";
 	
 	static String LOGTAG = "LPCCA RemoteService";
 	private BluetoothAdapter mBluetoothAdapter;
 	public static NXTCommBluecove myNXTCommBluecove;
 	private BroadcastReceiver bluetoothDeviceFoundBroadcastReceiver = null;
-	private Vector<BluetoothDevice> bluetoothDevices = new Vector<BluetoothDevice>();
+	private HashSet<BluetoothDevice> bluetoothDevices = new HashSet<BluetoothDevice>();
 
 	@Override
 	public void onCreate() {
@@ -57,13 +60,12 @@ public class LPCCARemoteService extends Service {
 								.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 						// Add the name and address to an array adapter to show
 						// in a ListView
-						if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+						if (device.getAddress().startsWith(LEGO_NXT_ID)) {
 							bluetoothDevices.add(device);
 							Log.d(LOGTAG,
-									"Added discovered & paired device: "
+									"Added discovered NXT: "
 											+ device.getName() + ", "
 											+ device.getAddress());
-							// createDeviceList();
 							broadcastNXTFound();
 						}
 					}
@@ -114,12 +116,14 @@ public class LPCCARemoteService extends Service {
 				for (BluetoothDevice btd : bluetoothDevices) {
 					if(deviceKey.equals(btd.getName())){
 						deviceMac = btd.getAddress();
+						Log.d(LOGTAG, "Trying to establish connection with: " + btd.getName());
 						NXTInfo nxtInfo = new NXTInfo(NXTCommFactory.BLUETOOTH,
 								deviceKey, deviceMac);
 						try {
 							myNXTCommBluecove.open(nxtInfo);
 						} catch (NXTCommException e) {
 						}
+						break;
 					}
 				}
 			}
@@ -134,7 +138,7 @@ public class LPCCARemoteService extends Service {
 		 * requestConnectionToNXT()
 		 */
 		public void requestConnectionToNXT() throws RemoteException {
-			Log.d(LOGTAG, "Trying to establish bt connection via Activity.");
+			Log.d(LOGTAG, "Starting Activity for choice of NXTs.");
 			Intent remoteIntent = new Intent(getBaseContext(),
 					AndroidBTConnectionActivity.class);
 			remoteIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -244,8 +248,8 @@ public class LPCCARemoteService extends Service {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
 		unregisterReceivers();
+		super.onDestroy();
 	}
 
 	public void unregisterReceivers() {

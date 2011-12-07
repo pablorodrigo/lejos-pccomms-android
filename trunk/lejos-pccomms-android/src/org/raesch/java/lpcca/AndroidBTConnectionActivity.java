@@ -43,6 +43,7 @@ public class AndroidBTConnectionActivity extends Activity {
 	private TextView textView;
 	private Button connectBtn;
 	private InterfaceLPCCARemoteService myRemoteService = null;
+	private BroadcastReceiver myNXTFoundBCR;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -103,7 +104,6 @@ public class AndroidBTConnectionActivity extends Activity {
 					.asInterface(service);
 		}
 	};
-	private BroadcastReceiver myNXTFoundBCR;
 
 	private void createDeviceList() {
 		List<String> devices;
@@ -124,15 +124,12 @@ public class AndroidBTConnectionActivity extends Activity {
 
 	// @Override
 	public void onDestroy() {
-		super.onDestroy();
 		unbindService(serviceConnection);
-//		unregisterReceivers();
+		unregisterReceivers();
+		super.onDestroy();
 	}
 
 	public void unregisterReceivers() {
-		if (myNXTFoundBCR != null) {
-			unregisterReceiver(myNXTFoundBCR);
-		}
 		if (myNXTFoundBCR != null) {
 			unregisterReceiver(myNXTFoundBCR);
 		}
