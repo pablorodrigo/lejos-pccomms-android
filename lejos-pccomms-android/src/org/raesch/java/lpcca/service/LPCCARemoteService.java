@@ -27,7 +27,7 @@ public class LPCCARemoteService extends Service {
 
 	public static final String NXT_FOUND = "org.raesch.java.lpcca.service.NXT_FOUND";
 
-	protected static final String LEGO_NXT_ID = "001653";
+	protected static final String LEGO_NXT_ID = "00:16:53";
 	
 	static String LOGTAG = "LPCCA RemoteService";
 	private BluetoothAdapter mBluetoothAdapter;
